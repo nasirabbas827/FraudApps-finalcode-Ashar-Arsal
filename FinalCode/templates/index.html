@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Home - Fake Reviews Detector{% endblock %}
+
+{% block content %}
+
+<div class="p-5 text-center bg-white rounded-3 shadow-lg mb-5">
+    <h1 class="display-3 fw-bold text-dark mb-3">
+         Fake Reviews Detector
+    </h1>
+    <p class="lead text-muted mb-4">
+        Trustworthy decisions start here. Browse applications, read verified user reviews, and instantly detect fake feedback using our AI-powered sentiment analysis.
+    </p>
+    {% if not user.is_authenticated %}
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <a href="{% url 'register' %}" class="btn btn-success btn-lg px-4 gap-3 fw-bold">Get Started Now</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">Already a Member? Login</a>
+    </div>
+    {% endif %}
+</div>
+
+<h2 class="text-center mb-4 pb-2 border-bottom">Popular Applications</h2>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-3">
+    {% for app in apps %}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm transition-hover">
+                {% if app.image %}
+                    <img src="{{ app.image.url }}" class="card-img-top rounded-top" style="height: 200px; object-fit: cover;" alt="{{ app.name }} logo">
+                {% else %}
+                    <div class="bg-dark text-white d-flex align-items-center justify-content-center rounded-top" style="height: 200px; font-size: 3rem;">
+                        {{ app.name|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                
+                <div class="card-body d-flex flex-column p-4">
+                    <h5 class="card-title fw-bold text-primary mb-2">{{ app.name }}</h5>
+                    <p class="card-text text-secondary mb-3">{{ app.description|truncatewords:15 }}</p>
+                    <small class="text-muted mb-3">Category: {{ app.category }}</small>
+                    
+                    <div class="mt-auto">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'app_detail' app.id %}" class="btn btn-sm btn-success w-100">View Reviews & Detect Fakes</a>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-sm btn-outline-dark w-100">Login to Access</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-info-circle-fill"></i> No applications available yet. Check back soon!
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<h2 class="text-center mt-5 mb-4 pt-4 border-top">Community Feedback</h2>
+{% if feedbacks %}
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for feedback in feedbacks %}
+            <div class="col">
+                <div class="card bg-light h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-dark fw-bold">
+                            <i class="bi bi-chat-square-quote-fill me-2 text-success"></i>
+                            {{ feedback.user.username }}
+                        </h6>
+                        <p class="card-text border-start border-3 border-success ps-3 fst-italic">{{ feedback.message }}</p>
+                        <small class="text-muted float-end">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ feedback.created_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-center text-muted">No public system feedback submitted yet.</p>
+{% endif %}
+
+<style>
+    /* Add a subtle hover effect to cards */
+    .transition-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+    }
+    /* Set primary color for the buttons to match the base template's accent */
+    .btn-success {
+        background-color: var(--bs-custom-accent, #2ecc71) !important;
+        border-color: var(--bs-custom-accent, #2ecc71) !important;
+    }
+</style>
+{% endblock content %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Add Review - {{ app.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        
+        <div class="d-flex align-items-center mb-4 p-3 bg-white rounded-3 shadow-sm border-start border-5 border-success">
+            {% if app.image %}
+                <img src="{{ app.image.url }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ app.name }} logo">
+            {% else %}
+                <div class="bg-dark text-white d-flex align-items-center justify-content-center rounded me-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                    <i class="bi bi-app"></i>
+                </div>
+            {% endif %}
+            <div>
+                <h2 class="mb-0 fw-bold">Write a Review for <span class="text-primary">{{ app.name }}</span></h2>
+                <p class="text-muted mb-0">{{ app.description|truncatewords:15 }}</p>
+            </div>
+        </div>
+
+        <div class="card mb-5 border-0 shadow-lg">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i> Your Feedback Matters</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="comment" class="form-label fs-5 fw-semibold">
+                            <i class="bi bi-chat-right-text me-1"></i> Your Experience:
+                        </label>
+                        <textarea name="comment" id="comment" rows="8" class="form-control form-control-lg" 
+                                  placeholder="What did you like or dislike about {{ app.name }}? Your honest review helps others..." required
+                                  aria-describedby="reviewHelp"></textarea>
+                        <div id="reviewHelp" class="form-text">
+                            A minimum of 10 words is recommended for accurate sentiment analysis.
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'app_detail' app.id %}" class="btn btn-outline-secondary btn-lg me-3">
+                            <i class="bi bi-x-lg me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg px-4">
+                            <i class="bi bi-send-fill me-1"></i> Submit Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h3 class="mb-4 text-dark border-bottom pb-2">
+            <i class="bi bi-chat-left-text me-2"></i> Recent Community Reviews
+        </h3>
+        
+        <div class="list-group">
+            {% for review in app.reviews.all|slice:":10" %}
+                <div class="list-group-item list-group-item-action mb-3 rounded-3 shadow-sm p-4">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1 fw-bold text-dark">
+                            <i class="bi bi-person-circle me-1"></i> {{ review.user.username }}
+                        </h6>
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i> {{ review.created_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                    
+                    <p class="mt-2 mb-2 border-start border-3 ps-3 fst-italic">
+                        {{ review.comment }}
+                    </p>
+                    <span class="badge rounded-pill p-2 
+                        {% if review.sentiment == 'positive' %}bg-success
+                        {% elif review.sentiment == 'negative' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {% if review.sentiment == 'positive' %}<i class="bi bi-emoji-smile-fill"></i> Positive
+                        {% elif review.sentiment == 'negative' %}<i class="bi bi-emoji-frown-fill"></i> Negative
+                        {% else %}<i class="bi bi-emoji-neutral-fill"></i> Neutral
+                        {% endif %}
+                    </span>
+                </div>
+            {% empty %}
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> No reviews yet. Be the first to share your opinion!
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
