@@ -203,7 +203,13 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
-# Add Review for a Specific App
+import socket
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Application, AppReview
+
+
 @login_required
 def add_review(request, app_id):
     app = get_object_or_404(Application, id=app_id)
@@ -211,6 +217,9 @@ def add_review(request, app_id):
     if request.method == "POST":
         comment = request.POST.get('comment', '').strip()
 
+        # ----------------------------
+        # Validation
+        # ----------------------------
         if not comment:
             messages.error(request, "Review comment cannot be empty.")
             return redirect('add_review', app_id=app_id)
@@ -219,21 +228,53 @@ def add_review(request, app_id):
             messages.error(request, "Review must be at least 10 characters long.")
             return redirect('add_review', app_id=app_id)
 
-        # Perform sentiment analysis using SentiWordNet
+        # ----------------------------
+        # Sentiment Analysis
+        # ----------------------------
         sentiment_label, sentiment_score = analyze_sentiment_sentiwordnet(comment)
 
-        # Save the review
+        # ----------------------------
+        # Fake Review Detection
+        # Rule: Same user > 3 reviews on same app
+        # ----------------------------
+        review_count = AppReview.objects.filter(
+            app=app,
+            user=request.user
+        ).count()
+
+        review_status = 'fake' if review_count >= 3 else 'genuine'
+
+        # ----------------------------
+        # IP Address Capture
+        # ----------------------------
+                # Simulating IP address detection
+        ip_address = socket.gethostbyname(socket.gethostname())
+
+        print(ip_address)
+
+        # ----------------------------
+        # Save Review
+        # ----------------------------
         AppReview.objects.create(
             app=app,
             user=request.user,
             comment=comment,
             sentiment=sentiment_label,
-            sentiment_score=sentiment_score
+            sentiment_score=sentiment_score,
+            review_status=review_status,
+            ip_address=ip_address
         )
 
-        messages.success(request, f"Your {sentiment_label} review has been submitted!")
-        
-
+        if review_status == 'fake':
+            messages.warning(
+                request,
+                "Your review was submitted but flagged as fake due to repeated submissions."
+            )
+        else:
+            messages.success(
+                request,
+                f"Your {sentiment_label} review has been submitted successfully."
+            )
 
         return redirect('app_detail', app_id=app.id)
 

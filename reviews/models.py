@@ -16,7 +16,8 @@ class Application(models.Model):
         return self.name
 
 
-# Review Model
+
+
 class AppReview(models.Model):
     SENTIMENT_CHOICES = (
         ('positive', 'Positive'),
@@ -24,15 +25,47 @@ class AppReview(models.Model):
         ('negative', 'Negative'),
     )
 
-    app = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    REVIEW_STATUS_CHOICES = (
+        ('genuine', 'Genuine'),
+        ('fake', 'Fake'),
+    )
+
+    app = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
     comment = models.TextField()
-    sentiment = models.CharField(max_length=10, choices=SENTIMENT_CHOICES, blank=True, null=True)
+
+    sentiment = models.CharField(
+        max_length=10,
+        choices=SENTIMENT_CHOICES,
+        blank=True,
+        null=True
+    )
     sentiment_score = models.FloatField(default=0.0)
+
+    review_status = models.CharField(
+        max_length=10,
+        choices=REVIEW_STATUS_CHOICES,
+        default='genuine'
+    )
+
+    ip_address = models.GenericIPAddressField(
+        blank=True,
+        null=True
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} → {self.app.name}"
+        return f"{self.user.username} → {self.app.name} ({self.review_status})"
+
     
 
 class Feedback(models.Model):
